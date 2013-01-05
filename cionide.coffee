@@ -1,6 +1,7 @@
 optimist = require 'optimist'
 uuid = require 'node-uuid'
 express = require 'express'
+moment = require 'moment'
 
 {exec} = require 'child_process'
 
