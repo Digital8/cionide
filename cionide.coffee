@@ -6,7 +6,7 @@ express = require 'express'
 
 argv = optimist.argv
 
-secret = do uuid
+secret = argv._[1] or uuid()
 
 app = do express
 
@@ -22,7 +22,7 @@ app.all "/#{secret}", (req, res) ->
     
     res.send status: 200
 
-port = 8888
+port = argv._[2] or 8888
 
 app.listen port, ->
   console.log "Listening on localhost:#{port}/#{secret}"
