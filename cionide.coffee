@@ -13,7 +13,11 @@ app = do express
 app.all "/#{secret}", (req, res) ->
   console.log 'hit'
   
-  exec """cd #{argv._[0]} && git pull""", (error, stdout, stderr) ->
+  path = argv._[0]
+  
+  backupPath = "#{path}-backup-#{moment().format 'DD-MM-YYYY-HH-MM-SS'}"
+  
+  exec """cd #{path} && mkdir #{backupPath} && cp -R #{argv._[0]}/* #{backupPath} && git pull""", (error, stdout, stderr) ->
     console.log arguments...
     
     res.send status: 200
