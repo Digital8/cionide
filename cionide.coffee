@@ -18,7 +18,7 @@ app.all "/#{secret}", (req, res) ->
   
   backupPath = "#{path}-backup-#{moment().format 'DD-MM-YYYY-HH-MM-SS'}"
   
-  exec """cd #{path} && mkdir #{backupPath} && cp -R #{argv._[0]}/* #{backupPath} && git pull""", (error, stdout, stderr) ->
+  exec """cd #{path} && mkdir #{backupPath} && cp -R #{argv._[0]}/* #{backupPath} && npm install && git pull""", (error, stdout, stderr) ->
     console.log arguments...
     
     res.send status: 200
