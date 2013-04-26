@@ -1,6 +1,7 @@
 {
   "name": "cionide",
   "version": "0.0.0",
+  "bin": "./bin/cionide",
   "dependencies": {
     "node-uuid": "~1.4.0",
     "express": "~3.1.0",
