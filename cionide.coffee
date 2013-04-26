@@ -1,29 +1,32 @@
+fs = require 'fs'
+{exec} = require 'child_process'
+
 optimist = require 'optimist'
 uuid = require 'node-uuid'
 express = require 'express'
-moment = require 'moment'
-
-{exec} = require 'child_process'
 
 argv = optimist.argv
 
-secret = argv._[1] or uuid()
+# secret = argv._[1] or uuid()
+
+console.log 'argv', argv
 
 app = do express
 
-app.all "/#{secret}", (req, res) ->
-  console.log 'hit'
-  
-  path = argv._[0]
-  
-  backupPath = "#{path}-backup-#{moment().format 'DD-MM-YYYY-HH-MM-SS'}"
-  
-  exec """cd #{path} && mkdir #{backupPath} && cp -R #{argv._[0]}/* #{backupPath} && npm install && git pull""", (error, stdout, stderr) ->
-    console.log arguments...
-    
-    res.send status: 200
+app.use express.bodyParser()
+app.use app.router
 
-port = argv._[2] or 8888
+# config = require 
 
-app.listen port, ->
-  console.log "Listening on localhost:#{port}/#{secret}"
+# config = {}
+# config.port ?= 6969
+# config.secret ?= 'secret'
+
+app.listen config.port, ->
+  console.log "*.*:#{config.port}/#{config.secret}"
+
+app.get '/', (req, res) ->
+  
+  # console.log req.body
+  
+  # fs.writeFile
