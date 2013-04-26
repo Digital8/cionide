@@ -34,7 +34,7 @@ task.scripts = (key, stage, callback = ->) ->
 
 task.dependents = (key, callback = ->) ->
   
-  dependents = config.graph[key] or []
+  dependents = config.graph[key]?.dependents or []
   
   async.map dependents, (dependent, callback) ->
     handleKey dependent, callback
@@ -49,13 +49,20 @@ task.install = (key, callback) ->
   child_process.exec 'sudo cake install', (env key), callback
 
 handleKey = (key, callback = ->) ->
+  
+  console.log '<repo>', key: key
+  
   async.series [
     (callback) -> task.scripts key, 'before', callback
     (callback) -> task.pull key, callback
     (callback) -> task.install key, callback
     (callback) -> task.scripts key, 'after', callback
     (callback) -> task.dependents key, callback
-  ], callback
+  ], ->
+    
+    console.log '</repo>'
+    
+    callback arguments...
 
 handlePush = (push, callback = ->) ->
   
