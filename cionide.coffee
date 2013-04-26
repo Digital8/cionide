@@ -57,8 +57,8 @@ request url, (error, response, body) ->
           'package.json' in commit.modified
         
         if npm
-          console.log 'REQ', repository.name, 'cake install', cwd: cwd
-          child_process.exec 'cake install', cwd: cwd, (error, stdout, stderr) ->
+          console.log 'REQ', repository.name, 'sudo cake install', cwd: cwd
+          child_process.exec 'sudo cake install', cwd: cwd, (error, stdout, stderr) ->
             console.log 'RES', repository.name, 'cake install', {error, stdout, stderr}
       
     #   # fs.writeFile
