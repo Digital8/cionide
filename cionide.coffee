@@ -15,6 +15,62 @@ argv = optimist.argv
 
 [url] = argv._
 
+config = null
+
+getCWD = (key) ->
+  "#{process.cwd()}/#{key}"
+
+env = (key) ->
+  cwd: (getCWD key)
+
+task = {}
+
+task.scripts = (key, stage, callback = ->) ->
+  
+  scripts = config.scripts[hostname]?[stage] or []
+  async.mapSeries scripts, (script, callback) ->
+    child_process.exec script, (env key), callback
+  , callback
+
+task.dependents = (key, callback = ->) ->
+  
+  dependents = config.graph[key] or []
+  
+  async.map dependents, (dependent, callback) ->
+    handleKey dependent, callback
+  , callback
+
+task.pull = (key, callback = ->) ->
+  
+  child_process.exec 'git pull', (env key), callback
+
+task.install = (key, callback) ->
+  
+  child_process.exec 'sudo cake install', (env key), callback
+
+handleKey = (key, callback = ->) ->
+  async.series [
+    (callback) -> task.scripts key, 'before', callback
+    (callback) -> task.pull key, callback
+    (callback) -> task.install key, callback
+    (callback) -> task.scripts key, 'after', callback
+    (callback) -> task.dependents key, callback
+  ], callback
+
+handlePush = (push, callback = ->) ->
+  
+  console.log '<push>', owner: push.owner
+  
+  {commits, repository} = push
+  
+  key = repository.name
+  
+  handleKey key, (error) ->
+    
+    console.log '</push>', error: error
+    
+    callback arguments...
+
 request url, (error, response, body) ->
   
   prompt.override = optimist.argv
@@ -35,6 +91,8 @@ request url, (error, response, body) ->
     config = CoffeeScript.eval body
     config.port ?= 6969
     config.secret ?= ''
+    config.scripts ?= {}
+    config.graph ?= {}
     
     app = do express
     
@@ -46,47 +104,8 @@ request url, (error, response, body) ->
     
     app.post '/', (req, res) ->
       
+      res.send 200
+      
       push = JSON.parse req.body.payload
       
-      console.log 'PUSH', push.owner
-      
-      {commits, repository} = push
-      
-      cwd = "#{process.cwd()}/#{repository.name}"
-      
-      scripts = config?.scripts?[hostname]?.before or []
-      console.log scripts
-      async.map scripts, (script, callback) ->
-        console.log repository.name, 'script', 'before', script
-        child_process.exec script, cwd: cwd, callback
-      , (error) ->
-        
-        console.log error if error?
-        
-        console.log 'pulling'
-        
-        console.log 'REQ', repository.name, 'git pull', cwd: cwd
-        child_process.exec 'git pull', cwd: cwd, (error, stdout, stderr) ->
-          console.log 'RES', repository.name, 'git pull', {error, stdout, stderr}
-          
-          start = ->
-            scripts = config?.scripts?[hostname]?.after
-            return unless scripts?
-            
-            for script in scripts
-              console.log repository.name, 'script', 'after', script
-              child_process.exec script, cwd: cwd
-          
-          npm = _.some commits, (commit) ->
-            'package.json' in commit.modified
-          
-          if npm
-            console.log 'REQ', repository.name, 'sudo cake install', cwd: cwd
-            child_process.exec 'sudo cake install', cwd: cwd, (error, stdout, stderr) ->
-              console.log 'RES', repository.name, 'cake install', {error, stdout, stderr}
-              
-              do start
-          
-          else
-            
-            do start
+      handlePush push
