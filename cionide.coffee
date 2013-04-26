@@ -48,17 +48,22 @@ request url, (error, response, body) ->
       
       push = JSON.parse req.body.payload
       
+      console.log 'PUSH', push.owner
+      
       {commits, repository} = push
       
       cwd = "#{process.cwd()}/#{repository.name}"
       
       scripts = config?.scripts?[hostname]?.before or []
-      _.map scripts, (script, callback) ->
+      console.log scripts
+      async.map scripts, (script, callback) ->
         console.log repository.name, 'script', 'before', script
         child_process.exec script, cwd: cwd, callback
       , (error) ->
         
         console.log error if error?
+        
+        console.log 'pulling'
         
         console.log 'REQ', repository.name, 'git pull', cwd: cwd
         child_process.exec 'git pull', cwd: cwd, (error, stdout, stderr) ->
