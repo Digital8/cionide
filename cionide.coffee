@@ -16,6 +16,7 @@ argv = optimist.argv
 request url, (error, response, body) ->
   
   prompt.override = optimist.argv
+  prompt.override.confirm = 'y'
   
   prompt.start()
   
