@@ -4,29 +4,50 @@ fs = require 'fs'
 optimist = require 'optimist'
 uuid = require 'node-uuid'
 express = require 'express'
+request = require 'request'
+CoffeeScript = require 'coffee-script'
+prompt = require 'prompt'
 
 argv = optimist.argv
 
-# secret = argv._[1] or uuid()
+[url] = argv._
 
-console.log 'argv', argv
-
-app = do express
-
-app.use express.bodyParser()
-app.use app.router
-
-# config = require 
-
-# config = {}
-# config.port ?= 6969
-# config.secret ?= 'secret'
-
-app.listen config.port, ->
-  console.log "*.*:#{config.port}/#{config.secret}"
-
-app.get '/', (req, res) ->
+request url, (error, response, body) ->
   
-  # console.log req.body
+  prompt.override = optimist.argv
   
-  # fs.writeFile
+  prompt.start()
+  
+  console.log """
+  ### <config> ###
+  #{body}
+  ### </config> ###
+  """
+  
+  prompt.get ['confirm'], (error, result) ->
+    
+    process.exit() unless result.confirm in ['y', 'Y', 'yes', 'yes', '']
+    
+    config = CoffeeScript.eval body
+    config.port ?= 6969
+    config.secret ?= ''
+    
+    app = do express
+    
+    app.use express.bodyParser()
+    app.use app.router
+    
+    # # config = require 
+    
+    # # config = {}
+    # # config.port ?= 6969
+    # # config.secret ?= 'secret'
+    
+    app.listen config.port, ->
+      console.log "*.*:#{config.port}/#{config.secret}"
+    
+    app.get '/', (req, res) ->
+      
+      console.log req.body
+      
+    #   # fs.writeFile
